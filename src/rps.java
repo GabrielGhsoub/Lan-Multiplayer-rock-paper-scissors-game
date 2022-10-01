@@ -34,6 +34,13 @@ public class rps {
             + versionNumber + " --- \n";
 
     /**
+     * A short msg to prompt the user to enter a name
+     * 
+     * @var string
+     */
+    private static String msgEnterName = "Please enter your name: ";
+
+    /**
      * The help context
      * 
      * @var string
@@ -44,7 +51,15 @@ public class rps {
     public static void main(String args[]) throws Exception {
 
         String input = "";
+        String name = "";
         String response;
+
+        // get name
+        System.out.print(rps.msgEnterName);
+
+        // get input
+        BufferedReader UserNameBuffer = new BufferedReader(new InputStreamReader(System.in));
+        name = UserNameBuffer.readLine();
 
         System.out.println(rps.msgWelcome);
 
@@ -71,7 +86,7 @@ public class rps {
         } while (!input.equals("R") && !input.equals("P") && !input.equals("S"));
 
         // Transmit input to the server and provide some feedback for the user
-        outToServer.writeBytes(input + "\n");
+        outToServer.writeBytes(name + "-" + input + "\n");
         System.out
                 .println("\nYour input ("
                         + input
