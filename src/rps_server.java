@@ -1,6 +1,11 @@
 import java.io.*;
 import java.net.*;
 import java.util.Scanner;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+// arraylist
+import java.util.ArrayList;
 
 public class rps_server {
     /**
@@ -70,10 +75,14 @@ public class rps_server {
 
     public static void main(String args[]) throws Exception {
 
-        String resClient_1 = "";
-        String resClient_2 = "";
-        String inputClient_1;
-        String inputClient_2;
+        // Array of sockets
+        ArrayList<Socket> sockets = new ArrayList<Socket>();
+
+        // Array of names
+        ArrayList<String> names = new ArrayList<String>();
+
+        // Array of inputs
+        // ArrayList<String> inputs = new ArrayList<String>();
 
         // Print welcome msg
         System.out.println(rps_server.welcomeMsg);
@@ -85,25 +94,98 @@ public class rps_server {
         ServerSocket welcomeSocket = new ServerSocket(rps_server.port);
         System.out.println("\nOk, we're up and running on port " + welcomeSocket.getLocalPort() + " ...");
 
-        int i = 0;
-
         while (!welcomeSocket.isClosed()) {
 
-            System.out.println("Client" + i + " connected ...");
+            // Create socket for new player
+            Socket connectionSocket = welcomeSocket.accept();
 
-            // Create new socket for client 1
-            Socket connectionSocket_1 = welcomeSocket.accept();
-            // DataOutputStream outClient_1 = new
-            // DataOutputStream(connectionSocket_1.getOutputStream());
-            BufferedReader inClient_1 = new BufferedReader(
-                    new InputStreamReader(connectionSocket_1.getInputStream()));
+            // if socket not null
 
-            System.out.println(inClient_1.readLine());
-            i++;
+            // Read input from player
+            BufferedReader inClient = new BufferedReader(
+                    new InputStreamReader(connectionSocket.getInputStream()));
 
-            // close socket
-            // connectionSocket_1.close();
+            // read from inclient
+            String response = inClient.readLine();
 
+            // split response with -
+            String[] responseArray = response.split("--");
+
+            // if responseArray[1] == "name"
+            if (responseArray[1].equals("name")) {
+                String name = responseArray[0];
+
+                // add socket to array of sockets at the end
+                sockets.add(connectionSocket);
+                names.add(name);
+
+                // response = inClient.readLine();
+                // responseArray = response.split("--");
+
+            }
+
+            if (responseArray[1].equals("players")) {
+
+                try {
+                    // get name of player
+                    String name = responseArray[0];
+
+                    System.out.println("Player " + name + " wants to see the list of players");
+
+                    // search in array of sockets for socket of player
+                    int index = names.indexOf(name);
+                    Socket playerSocket = sockets.get(index);
+
+                    System.out.println("Player " + name + " is at index " + index);
+                    System.out.println("Player " + name + " has socket " + playerSocket);
+
+                    // create output stream for player
+                    DataOutputStream outToClient = new DataOutputStream(playerSocket.getOutputStream());
+
+                    // create string with all names
+                    String allNames = "";
+                    for (String n : names) {
+                        allNames += n + "--";
+                    }
+
+                    // send all names to player
+                    outToClient.writeBytes(allNames + "\n");
+                } catch (Exception e) {
+                    System.out.println("Player not connected anymore!");
+                }
+            }
+
+            // print the arrays
+            for (int j = 0; j < sockets.size(); j++) {
+                System.out.println("Socket: " + sockets.get(j));
+                System.out.println("Name: " + names.get(j));
+
+            }
+            System.out.println("--------------------------------------------------");
+
+            // every 30 seconds send ping byte to clients to check availability
+            Runnable r = new Runnable() {
+                public void run() {
+
+                    // for each socket if not connected anymore remove from array
+                    for (int j = 0; j < sockets.size(); j++) {
+                        // send ping to socket to check if still connected
+                        if (sockets.get(j) != null) {
+                            try {
+                                sockets.get(j).sendUrgentData(0xFF);
+                            } catch (Exception e) {
+                                System.out.println("Socket " + sockets.get(j) + " is not connected anymore");
+                                // if not connected anymore remove from array
+                                sockets.remove(j);
+                                names.remove(j);
+                                // inputs.remove(j);
+                            }
+                        }
+                    }
+                }
+            };
+            ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+            executor.scheduleAtFixedRate(r, 0, 30, TimeUnit.SECONDS);
         }
 
         // while (!welcomeSocket.isClosed()) {

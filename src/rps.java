@@ -3,103 +3,131 @@ import java.net.*;
 
 public class rps {
 
-    /**
-     * The host
-     * 
-     * @var string
-     * 
-     */
-    private static String host = "localhost";
+        /**
+         * The host
+         * 
+         * @var string
+         * 
+         */
 
-    /**
-     * The port
-     * 
-     * @var integer
-     */
-    private static Integer port = 1337;
+        private static String host = "localhost";
 
-    /**
-     * The version of the client class
-     * 
-     * @var double
-     */
-    private static Double versionNumber = 1.0;
+        /**
+         * The port
+         * 
+         * @var integer
+         */
+        private static Integer port = 1337;
 
-    /**
-     * A short welcome msg
-     * 
-     * @var string
-     */
-    private static String msgWelcome = "--- Welcome to Paper Scissors Stone V. "
-            + versionNumber + " --- \n";
+        /**
+         * The version of the client class
+         * 
+         * @var double
+         */
+        private static Double versionNumber = 1.0;
 
-    /**
-     * A short msg to prompt the user to enter a name
-     * 
-     * @var string
-     */
-    private static String msgEnterName = "Please enter your name: ";
+        /**
+         * A short welcome msg
+         * 
+         * @var string
+         */
+        private static String msgWelcome = "--- Welcome to Rock Paper Scissors V. "
+                        + versionNumber + " --- \n";
 
-    /**
-     * The help context
-     * 
-     * @var string
-     * 
-     */
-    private static String msgRules = "\nRule set:\n - (R)ock beats (S)cissors\n - (S)cissors beats (P)aper\n - (P)aper beats (R)ock\n";
+        /**
+         * A short msg to prompt the user to enter a name
+         * 
+         * @var string
+         */
+        private static String msgEnterName = "Please enter your name: ";
 
-    public static void main(String args[]) throws Exception {
+        /**
+         * The help context
+         * 
+         * @var string
+         * 
+         */
+        private static String msgRules = "\nRule set:\n - (R)ock beats (S)cissors\n - (S)cissors beats (P)aper\n - (P)aper beats (R)ock\n";
 
-        String input = "";
-        String name = "";
-        String response;
+        public static void main(String args[]) throws Exception {
 
-        // get name
-        System.out.print(rps.msgEnterName);
+                String input = "";
+                String name = "";
 
-        // get input
-        BufferedReader UserNameBuffer = new BufferedReader(new InputStreamReader(System.in));
-        name = UserNameBuffer.readLine();
+                // save port in variable
+                int port = rps.port;
 
-        System.out.println(rps.msgWelcome);
+                // get name
+                System.out.print(rps.msgEnterName);
 
-        BufferedReader inFromUser = new BufferedReader(new InputStreamReader(
-                System.in));
-        Socket clientSocket = new Socket(rps.host, rps.port);
-        DataOutputStream outToServer = new DataOutputStream(
-                clientSocket.getOutputStream());
-        BufferedReader inFromServer = new BufferedReader(new InputStreamReader(
-                clientSocket.getInputStream()));
+                // get input
+                BufferedReader UserNameBuffer = new BufferedReader(new InputStreamReader(System.in));
+                name = UserNameBuffer.readLine();
 
-        do {
+                System.out.println(rps.msgWelcome);
 
-            if (input.equals("-rules")) {
-                System.out.println(rps.msgRules);
-            }
+                BufferedReader inFromUser = new BufferedReader(new InputStreamReader(
+                                System.in));
+                Socket clientSocket = new Socket(rps.host, port);
+                DataOutputStream outToServer = new DataOutputStream(
+                                clientSocket.getOutputStream());
+                BufferedReader inFromServer = new BufferedReader(new InputStreamReader(
+                                clientSocket.getInputStream()));
 
-            // Prompt user for select rock, paper or scissors ...
-            System.out
-                    .println("Start the game by selecting (R)ock (P)aper, (S)cissors");
-            System.out.print("or type \"-rules\" in order to see the rules: ");
-            input = inFromUser.readLine();
+                outToServer.writeBytes(name + "--name" + "\n");
 
-        } while (!input.equals("R") && !input.equals("P") && !input.equals("S"));
+                do {
 
-        // Transmit input to the server and provide some feedback for the user
-        outToServer.writeBytes(name + "-" + input + "\n");
-        System.out
-                .println("\nYour input ("
-                        + input
-                        + ") was successfully transmitted to the server. Now just be patient and wait for the result ...");
+                        if (input.equals("-rules")) {
+                                System.out.println(rps.msgRules);
+                        }
 
-        // Catch respones
-        response = inFromServer.readLine();
+                        if (input.equals("-quit")) {
+                                System.out.println("Goodbye!");
+                                break;
+                        }
 
-        // Display respones
-        System.out.println("Response from server: " + response);
+                        // players
+                        if (input.equals("-players")) {
 
-        // Close socket
-        clientSocket.close();
+                                System.out.println("Players: ");
+                                Socket clientSocket2 = new Socket(rps.host, port);
+                                DataOutputStream outToServer2 = new DataOutputStream(
+                                                clientSocket2.getOutputStream());
 
-    }
+                                outToServer2.writeBytes(name + "--players" + "\n");
+                                outToServer2.flush();
+
+                                String players = inFromServer.readLine();
+                                System.out.println(players);
+
+                                clientSocket2.close();
+                        }
+
+                        System.out.print("Hello " + name
+                                        + ", Start the game by typing \"-rules\" to see the rules, \"-players\" to see the players in the lobby,  \"-play\" to play with a random player , \"-play [PLAYER-NAME]\" to play with a specific oponent or \"-quit\" to quit : ");
+
+                        input = inFromUser.readLine();
+
+                } while (!input.equals("-quit"));
+
+                // // Transmit input to the server and provide some feedback for the user
+                // outToServer.writeBytes(name + "-" + input + "\n");
+
+                // System.out
+                // .println("\nYour input ("
+                // + input
+                // + ") was successfully transmitted to the server. Now just be patient and wait
+                // for the result ...");
+
+                // // Catch respones
+                // response = inFromServer.readLine();
+
+                // // Display respones
+                // System.out.println("Response from server: " + response);
+
+                // Close socket
+                clientSocket.close();
+
+        }
 }
