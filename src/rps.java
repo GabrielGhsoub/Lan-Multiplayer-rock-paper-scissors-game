@@ -104,6 +104,34 @@ public class rps {
                                 clientSocket2.close();
                         }
 
+                        // play
+                        if (input.equals("-play")) {
+
+                                System.out.println(
+                                                "Please enter your move (R for rock, P for paper, S for scissors ): ");
+                                String move = inFromUser.readLine();
+
+                                Socket clientSocket3 = new Socket(rps.host, port);
+                                DataOutputStream outToServer3 = new DataOutputStream(
+                                                clientSocket3.getOutputStream());
+
+                                outToServer3.writeBytes(name + "--play--" + move + "\n");
+                                outToServer3.flush();
+
+                                System.out.println("Waiting for opponent to play...");
+                                String result = inFromServer.readLine();
+                                System.out.println(result);
+
+                                if (result.equals("First Player")) {
+                                        System.out.println("Please wait for another player to join!");
+                                        result = inFromServer.readLine();
+                                        System.out.println(result);
+                                }
+
+                                clientSocket3.close();
+
+                        }
+
                         System.out.print("Hello " + name
                                         + ", Start the game by typing \"-rules\" to see the rules, \"-players\" to see the players in the lobby,  \"-play\" to play with a random player , \"-play [PLAYER-NAME]\" to play with a specific oponent or \"-quit\" to quit : ");
 

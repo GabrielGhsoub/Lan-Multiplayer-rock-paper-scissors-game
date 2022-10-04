@@ -82,7 +82,10 @@ public class rps_server {
         ArrayList<String> names = new ArrayList<String>();
 
         // Array of inputs
-        // ArrayList<String> inputs = new ArrayList<String>();
+        ArrayList<String> inputs = new ArrayList<String>();
+
+        // Multidimensional array linking names to input
+        ArrayList<ArrayList<String>> nameInput = new ArrayList<ArrayList<String>>();
 
         // Print welcome msg
         System.out.println(rps_server.welcomeMsg);
@@ -155,6 +158,173 @@ public class rps_server {
                 }
             }
 
+            if (responseArray[1].equals("play")) {
+
+                String resClient_1 = "";
+                String resClient_2 = "";
+
+                try {
+                    // get name of player
+                    String name = responseArray[0];
+
+                    System.out.println("Player " + name + " wants to play");
+
+                    // search in array of sockets for socket of player
+                    int index = names.indexOf(name);
+
+                    Socket playerSocket = sockets.get(index);
+
+                    System.out.println("PlayerSocket " + playerSocket + " wants to play");
+
+                    // Save input of player
+                    inputs.add(responseArray[2]);
+
+                    // Save link between name and input
+                    ArrayList<String> nameInputPair = new ArrayList<String>();
+                    nameInputPair.add(name);
+                    nameInputPair.add(responseArray[2]);
+                    nameInput.add(nameInputPair);
+
+                    // count all players with input
+                    int count = 0;
+                    for (ArrayList<String> pair : nameInput) {
+                        if (pair.get(1) != null) {
+                            count++;
+                        }
+                    }
+
+                    // if socket size is 1
+                    if (sockets.size() == 1 || count == 1) {
+                        System.out.println("Please wait for another player to join and try again!");
+
+                        // create output stream for player
+                        DataOutputStream outToClient = new DataOutputStream(playerSocket.getOutputStream());
+
+                        // send message to player
+                        outToClient.writeBytes(
+                                "First Player"
+                                        + "\n");
+
+                    } else {
+                        System.out.println("There are enough players to play!");
+                        // Choose random player from array of sockets not including player or player 1
+                        // do while input of random player is different than null
+                        int randomIndex = 0;
+                        String randomInput = "";
+                        do {
+                            randomIndex = (int) (Math.random() * sockets.size());
+
+                            // get input of random player based on nameimput arraylist
+                            for (ArrayList<String> pair : nameInput) {
+                                if (pair.get(0).equals(names.get(randomIndex))) {
+                                    randomInput = pair.get(1);
+                                }
+                            }
+
+                        } while (randomIndex == index || randomInput == null);
+
+                        // get input of current player based on nameimput arraylist
+                        String currentInput = responseArray[2];
+
+                        System.out
+                                .println("Random socket is " + sockets.get(randomIndex) + "Its input is" +
+                                        randomInput);
+                        // current socket
+                        System.out.println("Current socket is " + playerSocket + "Its input is" +
+                                currentInput);
+
+                        /**
+                         * If the characters received from C1 and C2 are the same then the
+                         * server sends back to both clients the string "DRAW".
+                         */
+                        if (currentInput.equals(randomInput)) {
+                            resClient_1 = "Draw with " + names.get(randomIndex);
+                            resClient_2 = "Draw with " + name;
+                            System.out.println("It's a draw.");
+                        }
+                        /**
+                         * If the server receives ’R’ from C1 and ’S’ from C2 it sends the
+                         * string "YOU WIN" to C1 and the string "YOU LOSE" to C2.
+                         */
+                        else if (currentInput.equals("R") && randomInput.equals("S")) {
+                            resClient_1 = "You win against " + names.get(randomIndex);
+                            resClient_2 = "You lose against " + name;
+                            System.out.println("Player one wins.");
+
+                        }
+                        /**
+                         * If the server receives ’S’ from C1 and ’R’ from C2 it sends the
+                         * string "YOU LOSE" to C1 and the string "YOU WIN" to C2.
+                         */
+                        else if (currentInput.equals("S") && randomInput.equals("R")) {
+                            resClient_1 = "You lose against " + names.get(randomIndex);
+                            resClient_2 = "You win against " + name;
+                            System.out.println("Player two wins.");
+                        }
+                        /**
+                         * If the server receives ’R’ from C1 and ’P’ from C2 it sends the
+                         * string "YOU LOSE" to C1 and the string "YOU WIN" to C2.
+                         */
+                        else if (currentInput.equals("R") && randomInput.equals("P")) {
+                            resClient_1 = "You lose against " + names.get(randomIndex);
+                            resClient_2 = "You win against " + name;
+                            System.out.println("Player two wins.");
+                        }
+                        /**
+                         * If the server receives ’P’ from C1 and ’R’ from C2 it sends the
+                         * string "YOU WIN" to C1 and the string "YOU LOSE" to C2.
+                         */
+                        else if (currentInput.equals("P") && randomInput.equals("R")) {
+                            resClient_1 = "You win against " + names.get(randomIndex);
+                            resClient_2 = "You lose against " + name;
+                            System.out.println("Player one wins.");
+                        }
+                        /**
+                         * If the server receives ’S’ from C1 and ’P’ from C2 it sends the
+                         * string "YOU WIN" to C1 and the string "YOU LOSE" to C2.
+                         */
+                        else if (currentInput.equals("S") && randomInput.equals("P")) {
+                            resClient_1 = "You win against " + names.get(randomIndex);
+                            resClient_2 = "You lose " + name;
+                            System.out.println("Player one wins.");
+                        }
+                        /**
+                         * If the server receives ’P’ from C1 and ’S’ from C2 it sends the
+                         * string "YOU LOSE" to C1 and the string "YOU WIN" to C2.
+                         */
+                        else if (currentInput.equals("P") && randomInput.equals("S")) {
+                            resClient_1 = "You lose " + names.get(randomIndex);
+                            resClient_2 = "You win " + name;
+                            System.out.println("Player two wins.");
+                        }
+
+                        // return results
+                        DataOutputStream outToClient_1 = new DataOutputStream(playerSocket.getOutputStream());
+                        DataOutputStream outToClient_2 = new DataOutputStream(
+                                sockets.get(randomIndex).getOutputStream());
+
+                        // Remove input
+                        for (ArrayList<String> pair : nameInput) {
+                            // current player
+                            if (pair.get(0).equals(name)) {
+                                pair.set(1, null);
+                            }
+                            // random player
+                            if (pair.get(0).equals(names.get(randomIndex))) {
+                                pair.set(1, null);
+                            }
+                        }
+
+                        outToClient_1.writeBytes(resClient_1 + "\n");
+                        outToClient_2.writeBytes(resClient_2 + "\n");
+
+                    }
+
+                } catch (Exception e) {
+
+                }
+            }
+
             // print the arrays
             for (int j = 0; j < sockets.size(); j++) {
                 System.out.println("Socket: " + sockets.get(j));
@@ -187,110 +357,5 @@ public class rps_server {
             ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
             executor.scheduleAtFixedRate(r, 0, 30, TimeUnit.SECONDS);
         }
-
-        // while (!welcomeSocket.isClosed()) {
-
-        // // Player one
-        // Socket client_1 = welcomeSocket.accept();
-        // if (client_1.isConnected()) {
-        // System.out.println("\nPlayer one (" +
-        // (client_1.getLocalAddress().toString()).substring(1) + ":"
-        // + client_1.getLocalPort() + ") has joined ... waiting for player two ...");
-        // }
-        // DataOutputStream outClient_1 = new
-        // DataOutputStream(client_1.getOutputStream());
-        // BufferedReader inClient_1 = new BufferedReader(new
-        // InputStreamReader(client_1.getInputStream()));
-
-        // // Player two
-        // Socket client_2 = welcomeSocket.accept();
-        // if (client_2.isConnected()) {
-        // System.out.println("Player two (" +
-        // (client_2.getLocalAddress().toString()).substring(1) + ":"
-        // + client_1.getLocalPort() + ") has joined ... lets start ...");
-        // }
-        // DataOutputStream outClient_2 = new
-        // DataOutputStream(client_2.getOutputStream());
-        // BufferedReader inClient_2 = new BufferedReader(new
-        // InputStreamReader(client_2.getInputStream()));
-
-        // // Get client inputs
-        // inputClient_1 = inClient_1.readLine();
-        // inputClient_2 = inClient_2.readLine();
-
-        // /**
-        // * If the characters received from C1 and C2 are the same then the
-        // * server sends back to both clients the string "DRAW".
-        // */
-        // if (inputClient_1.equals(inputClient_2)) {
-        // resClient_1 = "Draw";
-        // resClient_2 = "Draw";
-        // System.out.println("It's a draw.");
-        // }
-        // /**
-        // * If the server receives ’R’ from C1 and ’S’ from C2 it sends the
-        // * string "YOU WIN" to C1 and the string "YOU LOSE" to C2.
-        // */
-        // else if (inputClient_1.equals("R") && inputClient_2.equals("S")) {
-        // resClient_1 = "You win";
-        // resClient_2 = "You lose";
-        // System.out.println("Player one wins.");
-
-        // }
-        // /**
-        // * If the server receives ’S’ from C1 and ’R’ from C2 it sends the
-        // * string "YOU LOSE" to C1 and the string "YOU WIN" to C2.
-        // */
-        // else if (inputClient_1.equals("S") && inputClient_2.equals("R")) {
-        // resClient_1 = "You lose";
-        // resClient_2 = "You win";
-        // System.out.println("Player two wins.");
-        // }
-        // /**
-        // * If the server receives ’R’ from C1 and ’P’ from C2 it sends the
-        // * string "YOU LOSE" to C1 and the string "YOU WIN" to C2.
-        // */
-        // else if (inputClient_1.equals("R") && inputClient_2.equals("P")) {
-        // resClient_1 = "You lose";
-        // resClient_2 = "You win";
-        // System.out.println("Player two wins.");
-        // }
-        // /**
-        // * If the server receives ’P’ from C1 and ’R’ from C2 it sends the
-        // * string "YOU WIN" to C1 and the string "YOU LOSE" to C2.
-        // */
-        // else if (inputClient_1.equals("P") && inputClient_2.equals("R")) {
-        // resClient_1 = "You win";
-        // resClient_2 = "You lose";
-        // System.out.println("Player one wins.");
-        // }
-        // /**
-        // * If the server receives ’S’ from C1 and ’P’ from C2 it sends the
-        // * string "YOU WIN" to C1 and the string "YOU LOSE" to C2.
-        // */
-        // else if (inputClient_1.equals("S") && inputClient_2.equals("P")) {
-        // resClient_1 = "You win";
-        // resClient_2 = "You lose";
-        // System.out.println("Player one wins.");
-        // }
-        // /**
-        // * If the server receives ’P’ from C1 and ’S’ from C2 it sends the
-        // * string "YOU LOSE" to C1 and the string "YOU WIN" to C2.
-        // */
-        // else if (inputClient_1.equals("P") && inputClient_2.equals("S")) {
-        // resClient_1 = "You lose";
-        // resClient_2 = "You win";
-        // System.out.println("Player two wins.");
-        // }
-
-        // // Send responses in uppercase and close sockets
-        // outClient_1.writeBytes(resClient_1.toUpperCase());
-        // outClient_2.writeBytes(resClient_2.toUpperCase());
-        // client_1.close();
-        // client_2.close();
-
-        // System.out.println("\nWaiting for new players ...\n");
-
-        // }
     }
 }
