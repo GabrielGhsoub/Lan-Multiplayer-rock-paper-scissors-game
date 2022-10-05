@@ -141,28 +141,47 @@ public class rps {
                         // play
                         if (input.equals("-play")) {
 
-                                System.out.println(
-                                                "Please enter your move (R for rock, P for paper, S for scissors ): ");
-                                String move = inFromUser.readLine();
+                                System.out.println("Challenge started! Win 3 times to win the game!");
 
-                                Socket clientSocket3 = new Socket(rps.host, port);
-                                DataOutputStream outToServer3 = new DataOutputStream(
-                                                clientSocket3.getOutputStream());
+                                int wins = 0;
 
-                                outToServer3.writeBytes(name + "--play--" + move + "\n");
-                                outToServer3.flush();
+                                // for 3 games
+                                for (int i = 0; i < 3; i++) {
 
-                                System.out.println("Waiting for opponent to play...");
-                                String result = inFromServer.readLine();
-                                System.out.println(result);
+                                        System.out.println(
+                                                        "Please enter your move (R for rock, P for paper, S for scissors ): ");
+                                        String move = inFromUser.readLine();
 
-                                if (result.equals("First Player")) {
-                                        System.out.println("Please wait for another player to join!");
-                                        result = inFromServer.readLine();
+                                        Socket clientSocket3 = new Socket(rps.host, port);
+                                        DataOutputStream outToServer3 = new DataOutputStream(
+                                                        clientSocket3.getOutputStream());
+
+                                        outToServer3.writeBytes(name + "--play--" + move + "\n");
+                                        outToServer3.flush();
+
+                                        System.out.println("Waiting for opponent to play...");
+                                        String result = inFromServer.readLine();
                                         System.out.println(result);
+
+                                        if (result.equals("First Player")) {
+                                                System.out.println("Please wait for another player to join!");
+                                                result = inFromServer.readLine();
+                                                System.out.println(result);
+                                        }
+
+                                        if (result.contains("win")) {
+                                                wins++;
+                                        }
+
+                                        clientSocket3.close();
                                 }
 
-                                clientSocket3.close();
+                                // if 3 wins -> win
+                                if (wins == 3) {
+                                        System.out.println("You won the challenge!");
+                                } else {
+                                        System.out.println("You lost the challenge!");
+                                }
 
                         }
 
