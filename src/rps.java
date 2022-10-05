@@ -53,28 +53,46 @@ public class rps {
 
                 String input = "";
                 String name = "";
+                String nameAvailability = "";
 
                 // save port in variable
                 int port = rps.port;
 
-                // get name
-                System.out.print(rps.msgEnterName);
-
-                // get input
-                BufferedReader UserNameBuffer = new BufferedReader(new InputStreamReader(System.in));
-                name = UserNameBuffer.readLine();
-
-                System.out.println(rps.msgWelcome);
-
                 BufferedReader inFromUser = new BufferedReader(new InputStreamReader(
                                 System.in));
-                Socket clientSocket = new Socket(rps.host, port);
-                DataOutputStream outToServer = new DataOutputStream(
-                                clientSocket.getOutputStream());
-                BufferedReader inFromServer = new BufferedReader(new InputStreamReader(
-                                clientSocket.getInputStream()));
+                Socket clientSocket;
+                DataOutputStream outToServer;
+                BufferedReader inFromServer;
 
-                outToServer.writeBytes(name + "--name" + "\n");
+                // check for name availability
+                do {
+                        clientSocket = new Socket(host, port);
+                        outToServer = new DataOutputStream(clientSocket.getOutputStream());
+                        inFromServer = new BufferedReader(new InputStreamReader(
+                                        clientSocket.getInputStream()));
+
+                        // get name
+                        System.out.print(rps.msgEnterName);
+
+                        // get input
+                        BufferedReader UserNameBuffer = new BufferedReader(new InputStreamReader(System.in));
+                        name = UserNameBuffer.readLine();
+
+                        outToServer.writeBytes(name + "--name" + "\n");
+                        outToServer.flush();
+
+                        nameAvailability = inFromServer.readLine();
+                        System.out.println(nameAvailability);
+
+                        if (nameAvailability.equals("false")) {
+                                System.out.println("Name already taken, please choose another one.");
+
+                        }
+
+                } while (nameAvailability.equals("false"));
+
+                // welcome msg
+                System.out.println(rps.msgWelcome);
 
                 do {
 
@@ -85,6 +103,22 @@ public class rps {
                         if (input.equals("-quit")) {
                                 System.out.println("Goodbye!");
                                 break;
+                        }
+
+                        // scores
+                        if (input.equals("-scores")) {
+                                System.out.println("Score: ");
+                                Socket clientSocket6 = new Socket(rps.host, port);
+                                DataOutputStream outToServer6 = new DataOutputStream(
+                                                clientSocket6.getOutputStream());
+
+                                outToServer6.writeBytes(name + "--scores" + "\n");
+                                outToServer6.flush();
+
+                                String scores = inFromServer.readLine();
+                                System.out.println(scores);
+
+                                clientSocket6.close();
                         }
 
                         // players
@@ -132,27 +166,33 @@ public class rps {
 
                         }
 
-                        System.out.print("Hello " + name
-                                        + ", Start the game by typing \"-rules\" to see the rules, \"-players\" to see the players in the lobby,  \"-play\" to play with a random player , \"-play [PLAYER-NAME]\" to play with a specific oponent or \"-quit\" to quit : ");
+                        if (input.contains("-play") && !input.equals("-play") && !input.equals("-players")) {
+
+                                System.out.println(
+                                                "Please enter your move (R for rock, P for paper, S for scissors ): ");
+                                String move = inFromUser.readLine();
+                                String opponent = input.substring(6);
+
+                                Socket clientSocket4 = new Socket(rps.host, port);
+                                DataOutputStream outToServer4 = new DataOutputStream(
+                                                clientSocket4.getOutputStream());
+
+                                outToServer4.writeBytes(name + "--play " + opponent + "--" + move + "\n");
+                                outToServer4.flush();
+
+                                System.out.println("Waiting for " + opponent + " to play...");
+                                String result = inFromServer.readLine();
+                                System.out.println(result);
+                                clientSocket4.close();
+
+                        }
+
+                        System.out.print(
+                                        "Start the game by typing \"-rules\" to see the rules, \"-scores\" to see your score, \"-players\" to see the players in the lobby,  \"-play\" to play with a random player , \"-play [PLAYER-NAME]\" to play with a specific oponent or \"-quit\" to quit : ");
 
                         input = inFromUser.readLine();
 
                 } while (!input.equals("-quit"));
-
-                // // Transmit input to the server and provide some feedback for the user
-                // outToServer.writeBytes(name + "-" + input + "\n");
-
-                // System.out
-                // .println("\nYour input ("
-                // + input
-                // + ") was successfully transmitted to the server. Now just be patient and wait
-                // for the result ...");
-
-                // // Catch respones
-                // response = inFromServer.readLine();
-
-                // // Display respones
-                // System.out.println("Response from server: " + response);
 
                 // Close socket
                 clientSocket.close();

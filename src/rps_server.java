@@ -84,6 +84,9 @@ public class rps_server {
         // Array of inputs
         ArrayList<String> inputs = new ArrayList<String>();
 
+        // Multidimensional array linking names to scores
+        ArrayList<ArrayList<String>> scores = new ArrayList<ArrayList<String>>();
+
         // Multidimensional array linking names to input
         ArrayList<ArrayList<String>> nameInput = new ArrayList<ArrayList<String>>();
 
@@ -118,13 +121,28 @@ public class rps_server {
             if (responseArray[1].equals("name")) {
                 String name = responseArray[0];
 
-                // add socket to array of sockets at the end
-                sockets.add(connectionSocket);
-                names.add(name);
+                // if name exists
+                if (names.contains(name)) {
+                    System.out.println("Name already exists");
+                    // send error msg
+                    DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
+                    outToClient.writeBytes("false" + "\n");
+                } else {
+                    System.out.println("New player: " + name);
+                    // add name to names array
+                    names.add(name);
 
-                // response = inClient.readLine();
-                // responseArray = response.split("--");
+                    // add socket to sockets array
+                    sockets.add(connectionSocket);
 
+                    // search in array of sockets for socket of player
+                    int index = names.indexOf(name);
+                    Socket playerSocket = sockets.get(index);
+
+                    // send success msg
+                    DataOutputStream outToClient = new DataOutputStream(playerSocket.getOutputStream());
+                    outToClient.writeBytes("name accepted" + "\n");
+                }
             }
 
             if (responseArray[1].equals("players")) {
@@ -241,6 +259,18 @@ public class rps_server {
                             resClient_1 = "Draw with " + names.get(randomIndex);
                             resClient_2 = "Draw with " + name;
                             System.out.println("It's a draw.");
+
+                            // save scores
+                            ArrayList<String> scorePair = new ArrayList<String>();
+                            scorePair.add(name);
+                            scorePair.add("draw");
+
+                            ArrayList<String> scorePair2 = new ArrayList<String>();
+                            scorePair2.add(names.get(randomIndex));
+                            scorePair2.add("draw");
+
+                            scores.add(scorePair);
+                            scores.add(scorePair2);
                         }
                         /**
                          * If the server receives ’R’ from C1 and ’S’ from C2 it sends the
@@ -251,6 +281,18 @@ public class rps_server {
                             resClient_2 = "You lose against " + name;
                             System.out.println("Player one wins.");
 
+                            // save scores
+                            ArrayList<String> scorePair = new ArrayList<String>();
+                            scorePair.add(name);
+                            scorePair.add("win");
+
+                            ArrayList<String> scorePair2 = new ArrayList<String>();
+                            scorePair2.add(names.get(randomIndex));
+                            scorePair2.add("lose");
+
+                            scores.add(scorePair);
+                            scores.add(scorePair2);
+
                         }
                         /**
                          * If the server receives ’S’ from C1 and ’R’ from C2 it sends the
@@ -260,6 +302,18 @@ public class rps_server {
                             resClient_1 = "You lose against " + names.get(randomIndex);
                             resClient_2 = "You win against " + name;
                             System.out.println("Player two wins.");
+
+                            // save scores
+                            ArrayList<String> scorePair = new ArrayList<String>();
+                            scorePair.add(name);
+                            scorePair.add("lose");
+
+                            ArrayList<String> scorePair2 = new ArrayList<String>();
+                            scorePair2.add(names.get(randomIndex));
+                            scorePair2.add("win");
+
+                            scores.add(scorePair);
+                            scores.add(scorePair2);
                         }
                         /**
                          * If the server receives ’R’ from C1 and ’P’ from C2 it sends the
@@ -269,6 +323,18 @@ public class rps_server {
                             resClient_1 = "You lose against " + names.get(randomIndex);
                             resClient_2 = "You win against " + name;
                             System.out.println("Player two wins.");
+
+                            // save scores
+                            ArrayList<String> scorePair = new ArrayList<String>();
+                            scorePair.add(name);
+                            scorePair.add("lose");
+
+                            ArrayList<String> scorePair2 = new ArrayList<String>();
+                            scorePair2.add(names.get(randomIndex));
+                            scorePair2.add("win");
+
+                            scores.add(scorePair);
+                            scores.add(scorePair2);
                         }
                         /**
                          * If the server receives ’P’ from C1 and ’R’ from C2 it sends the
@@ -278,6 +344,18 @@ public class rps_server {
                             resClient_1 = "You win against " + names.get(randomIndex);
                             resClient_2 = "You lose against " + name;
                             System.out.println("Player one wins.");
+
+                            // save scores
+                            ArrayList<String> scorePair = new ArrayList<String>();
+                            scorePair.add(name);
+                            scorePair.add("win");
+
+                            ArrayList<String> scorePair2 = new ArrayList<String>();
+                            scorePair2.add(names.get(randomIndex));
+                            scorePair2.add("lose");
+
+                            scores.add(scorePair);
+                            scores.add(scorePair2);
                         }
                         /**
                          * If the server receives ’S’ from C1 and ’P’ from C2 it sends the
@@ -287,6 +365,18 @@ public class rps_server {
                             resClient_1 = "You win against " + names.get(randomIndex);
                             resClient_2 = "You lose " + name;
                             System.out.println("Player one wins.");
+
+                            // save scores
+                            ArrayList<String> scorePair = new ArrayList<String>();
+                            scorePair.add(name);
+                            scorePair.add("win");
+
+                            ArrayList<String> scorePair2 = new ArrayList<String>();
+                            scorePair2.add(names.get(randomIndex));
+                            scorePair2.add("lose");
+
+                            scores.add(scorePair);
+                            scores.add(scorePair2);
                         }
                         /**
                          * If the server receives ’P’ from C1 and ’S’ from C2 it sends the
@@ -296,6 +386,18 @@ public class rps_server {
                             resClient_1 = "You lose " + names.get(randomIndex);
                             resClient_2 = "You win " + name;
                             System.out.println("Player two wins.");
+
+                            // save scores
+                            ArrayList<String> scorePair = new ArrayList<String>();
+                            scorePair.add(name);
+                            scorePair.add("lose");
+
+                            ArrayList<String> scorePair2 = new ArrayList<String>();
+                            scorePair2.add(names.get(randomIndex));
+                            scorePair2.add("win");
+
+                            scores.add(scorePair);
+                            scores.add(scorePair2);
                         }
 
                         // return results
@@ -321,8 +423,80 @@ public class rps_server {
                     }
 
                 } catch (Exception e) {
+                    System.out.println("Error: " + e);
+                }
+            }
+
+            if (responseArray[1].equals("scores")) {
+
+                // get name of player
+                String name = responseArray[0];
+
+                // search in array of sockets for socket of player
+                int index = names.indexOf(name);
+                Socket playerSocket = sockets.get(index);
+
+                System.out.println("Player " + name + " wants to see scores.");
+                System.out.println(scores.toString());
+
+                // create output stream for player
+                DataOutputStream outToClient = new DataOutputStream(playerSocket.getOutputStream());
+
+                // if scores empty
+                if (scores.isEmpty()) {
+                    outToClient.writeBytes("No scores yet." + "\n");
+                } else {
+                    int wins = 0;
+                    int loses = 0;
+                    int draws = 0;
+
+                    for (ArrayList<String> pair : scores) {
+                        if (pair.get(0).equals(name)) {
+                            // count wins losses and ties
+                            if (pair.get(1).equals("win")) {
+                                wins++;
+                            } else if (pair.get(1).equals("lose")) {
+                                loses++;
+                            } else if (pair.get(1).equals("draw")) {
+                                draws++;
+                            }
+                        }
+                    }
+
+                    // send player's score to player
+                    outToClient.writeBytes("Wins: " + wins + " Loses: " + loses + " Draws: " + draws + "\n");
+                }
+
+            }
+
+            // NOT FINISHED
+            if (!responseArray[1].equals("players")) {
+                // if responseArray[1] contains play but not equal to play
+                if (responseArray[1].contains("play") && !responseArray[1].equals("play")) {
+                    // get name of player
+                    String name = responseArray[0];
+
+                    // search in array of sockets for socket of player
+                    int index = names.indexOf(name);
+                    Socket playerSocket = sockets.get(index);
+
+                    // get name of opponent player
+                    String OPname = responseArray[1].substring(5);
+
+                    System.out.println("Player " + name + " wants to play with " + OPname);
+
+                    // search for name
+                    int OPindex = names.indexOf(OPname);
+
+                    // if name is not found
+                    if (OPindex == -1) {
+                        DataOutputStream outToClient = new DataOutputStream(playerSocket.getOutputStream());
+                        // return error message
+                        outToClient.writeBytes("Error: Name not found" + "\n");
+                    }
 
                 }
+
             }
 
             // print the arrays
